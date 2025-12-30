@@ -54,15 +54,13 @@ def get_device_state() -> str:
 @mcp.tool()
 def get_ip() -> str:
     """Returns the IP address of the device."""
-    # get real ip address
-    import socket
-    return socket.gethostbyname(socket.gethostname())
+    return "127.0.0.1"
 
-# get weather
+# get weather random
 @mcp.tool()
 def get_weather(city: str) -> str:
     """Returns the weather of the city."""
-    return f"The weather of {city} is sunny."
+    return f"The weather of {city} is {random.choice(['sunny', 'rainy', 'cloudy', 'snowy'])}."
 
 if __name__ == "__main__":
     # This allows running the server directly for testing or stdio mode

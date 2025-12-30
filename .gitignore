@@ -6,3 +6,6 @@
 
 # chat history
 chat_history.txt
+
+# backup file
+*.bak
