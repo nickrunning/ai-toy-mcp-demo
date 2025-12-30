@@ -7,6 +7,8 @@ from contextlib import AsyncExitStack
 from openai import OpenAI
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
+from prompt_toolkit import PromptSession
+from prompt_toolkit.history import FileHistory
 
 # -- Configuration --
 API_KEY = os.environ.get("OPENAI_API_KEY")
@@ -15,6 +17,7 @@ MODEL_NAME = os.environ.get("OPENAI_MODEL_NAME", "qwen-plus") # Default model
 
 SERVER_SCRIPT = os.path.join(os.getcwd(), "server.py")
 HISTORY_FILE = "chat_history.txt"
+CLI_HISTORY_FILE = ".cli_history"
 
 if not API_KEY:
     print("Error: OPENAI_API_KEY environment variable not found.")
@@ -33,6 +36,9 @@ async def run_client():
         args=[SERVER_SCRIPT],
         env=None
     )
+
+    # Initialize prompt session with history
+    prompt_session = PromptSession(history=FileHistory(CLI_HISTORY_FILE))
 
     async with AsyncExitStack() as stack:
         print(f"Connecting to server at {SERVER_SCRIPT}...")
@@ -62,7 +68,7 @@ async def run_client():
                 }
             })
         
-        # Load history
+        # print(f"DEBUG: OpenAI tools schema: {json.dumps(openai_tools, indent=2, ensure_ascii=False)}")
         messages = []
         if os.path.exists(HISTORY_FILE):
              try:
@@ -77,14 +83,23 @@ async def run_client():
              except Exception as e:
                  print(f"Error loading history: {e}")
 
-        # Prepend system instruction if needed, or rely on model behavior
-        # messages.insert(0, {"role": "system", "content": "You are a helpful AI assistant."})
+        # force system prompt to be more strict
+        system_prompt = (
+            "You are a helpful AI assistant for an AI toy. "
+            "You have access to real-time tools to control the toy and get information. "
+            "IMPORTANT: For ANY query about weather, battery, device status, IP, or physical actions, "
+            "you MUST use the corresponding tool. Do NOT answer from your memory. "
+            "If a user asks for weather in a city, use 'get_weather'. "
+            "If a user asks to move/dance, use 'perform_move'. "
+            "Current time is: 2025-12-30."
+        )
+        messages.insert(0, {"role": "system", "content": system_prompt})
 
-        print(f"\n--- Start Chatting with {MODEL_NAME} (type 'quit' to exit) ---")
+        print(f"\n--- Start Chatting with {MODEL_NAME} ---")
         
         while True:
             try:
-                user_input = input("You: ")
+                user_input = await prompt_session.prompt_async("You: ")
             except (EOFError, KeyboardInterrupt):
                 break
 
@@ -94,33 +109,30 @@ async def run_client():
             if not user_input.strip():
                 continue
 
-            # Add user message to history
             messages.append({"role": "user", "content": user_input})
             
-            # Save to history file (simple log)
             with open(HISTORY_FILE, "a") as f:
                 f.write(f"User: {user_input}\n")
 
-            # Chat Loop for Tool Calls
-            # We loop because the model might emit multiple tool calls in sequence or need results
-            
             while True:
                 try:
                     completion = client.chat.completions.create(
                         model=MODEL_NAME,
                         messages=messages,
                         tools=openai_tools,
-                        tool_choice="auto"  # optional but explicit
+                        tool_choice="auto"
                     )
                     
                     response_message = completion.choices[0].message
                 except Exception as e:
-                    print(f"Error from OpenAI/Qwen: {e}")
+                    print(f"Error from provider: {e}")
                     break
 
-                # If the model wants to call a tool
+                # Some compatible APIs prefer dicts for history
+                # We'll keep the object for now but handle carefully
+                
                 if response_message.tool_calls:
-                    # Append the model's message (with tool calls) to history
+                    # Append message with tool calls
                     messages.append(response_message)
                     
                     for tool_call in response_message.tool_calls:
@@ -128,9 +140,9 @@ async def run_client():
                         tool_args = json.loads(tool_call.function.arguments)
                         tool_call_id = tool_call.id
                         
-                        print(f"[MCP] Calling tool: {tool_name} with args: {tool_args}")
+                        print(f"DEBUG: Model requested tool '{tool_name}' with args {tool_args}")
+                        print(f"[MCP] Calling tool: {tool_name}...")
                         
-                        # Execute tool on MCP Server
                         try:
                             result = await session.call_tool(tool_name, arguments=tool_args)
                             tool_output = result.content[0].text
@@ -139,18 +151,15 @@ async def run_client():
                             tool_output = f"Error calling tool: {e}"
                             print(tool_output)
 
-                        # Append tool result to history
                         messages.append({
                             "role": "tool",
                             "tool_call_id": tool_call_id,
+                            "name": tool_name,
                             "content": tool_output
                         })
-                    
-                    # Continue the loop to get the next response from the model (with the tool outputs available)
                     continue
                 
                 else:
-                    # Final response from model (no more tool calls)
                     ai_text = response_message.content
                     print(f"AI: {ai_text}")
                     if ai_text:

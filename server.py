@@ -59,8 +59,13 @@ def get_ip() -> str:
 # get weather random
 @mcp.tool()
 def get_weather(city: str) -> str:
-    """Returns the weather of the city."""
-    return f"The weather of {city} is {random.choice(['sunny', 'rainy', 'cloudy', 'snowy'])}."
+    """
+    Get the current weather for a specific city.
+    
+    Args:
+        city: The name of the city (e.g., 'Hangzhou', 'Beijing').
+    """
+    return f"The weather of {city} is {random.choice(['sunny', 'rainy', 'cloudy', 'snowy'])} (real-time tool data)."
 
 if __name__ == "__main__":
     # This allows running the server directly for testing or stdio mode

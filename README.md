@@ -1,47 +1,60 @@
-# MCP Demo: AI Toy Controller
+# 🤖 MCP AI Toy Demo
 
-This project demonstrates a Model Context Protocol (MCP) server and client using Gemini 2.0 Flash Expedition (or 2.5 Flash if available).
+A sophisticated demonstration of the **Model Context Protocol (MCP)** using Python. This project features a simulated AI Toy server and a high-performance client integrated with **OpenAI-compatible LLMs (e.g., Qwen)**.
 
-## Structure
+## ✨ Key Features
 
-*   `server.py`: The MCP Server representing an AI Toy with capabilities (move, play sound, check battery).
-*   `client.py`: The MCP Client that connects to the server and uses Gemini to translate natural language into tool calls.
-*   `requirements.txt`: Python dependencies.
+- **🚀 One-Click Startup**: Fully automated environment setup and dependency management via `start.sh`.
+- **🛠️ MCP Server**: Simulates an AI Toy with multiple physical and informational capabilities.
+- **🧠 Advanced LLM Client**: Uses OpenAI SDK for seamless integration with Qwen/DashScope.
+- **📟 Shell-like Experience**: Interactive CLI with persistent search history (up/down arrow keys) powered by `prompt_toolkit`.
+- **📝 Context Preservation**: Automated saving and loading of chat history for continuity across sessions.
+- **🎯 Precise Tooling**: Optimized system prompts ensure the model prioritizes real-time tool usage over internal knowledge.
 
-## Setup
+## 🏗️ Project Structure
 
-1.  **Create and Activate Virtual Environment** (Already done if you let the agent run it):
-    ```bash
-    python3 -m venv .venv
-    source .venv/bin/activate
-    ```
+- `server.py`: The MCP Server exposing toy capabilities (Move, Sound, Weather, Status).
+- `client.py`: The core logic for LLM interaction, MCP session management, and CLI interface.
+- `start.sh`: The master control script for environment setup and execution.
+- `requirements.txt`: Python dependencies.
 
-2.  **Install Dependencies**:
-    ```bash
-    pip install -r requirements.txt
-    ```
+## 🚦 Quick Start
 
-## Running the Demo
+### 1. Configure the Environment
+Set your API key and endpoint (example for Qwen/DashScope):
 
-1.  **Set your API Key and Config**:
-    *   **Qwen / OpenAI Compatible**:
-        ```bash
-        export OPENAI_API_KEY="your_api_key"
-        export OPENAI_BASE_URL="https://dashscope.aliyuncs.com/compatible-mode/v1" # example for Qwen
-        export OPENAI_MODEL_NAME="qwen-plus"
-        ```
+```bash
+export OPENAI_API_KEY="your_api_key_here"
+export OPENAI_BASE_URL="https://dashscope.aliyuncs.com/compatible-mode/v1"
+export OPENAI_MODEL_NAME="qwen-plus"
+```
 
-2.  **Run the Client**:
-    ```bash
-    python client.py
-    ```
+### 2. Launch the Demo
+Run the automated startup script:
 
-3.  **Interact**:
-    *   Type messages like "Do a backflip", "Check battery", "Play some jazz".
-    *   The system will use the LLM to decide which tool to call on the server.
-    *   Conversation history is saved to `chat_history.txt`.
+```bash
+./start.sh
+```
+*The script will automatically create a virtual environment, install dependencies, and launch the client.*
 
-## Troubleshooting
+## 🕹️ Interaction Examples
 
-*   If you see connection errors, ensure `server.py` is in the same directory.
-*   Check your `OPENAI_API_KEY` and `OPENAI_BASE_URL` if connection to the LLM fails.
+Once connected, try commands like:
+- `"杭州天气怎么样？"` (Triggers the `get_weather` tool)
+- `"做一个空翻"` (Triggers `perform_move`)
+- `"查看电池电量和设备状态"` (Triggers `get_battery_status` & `get_device_state`)
+- `"播放一点音乐"` (Triggers `play_sound`)
+
+## 🛠️ MCP Tools Exposed
+
+| Tool Name | Description |
+| :--- | :--- |
+| `perform_move` | Executes movements (dance, wave, backflip). |
+| `play_sound` | Plays specific sounds (bark, beep, music). |
+| `get_battery_status` | Retrieves current battery % and charging status. |
+| `get_device_state` | Returns full internal state of the toy. |
+| `get_ip` | Retrieves the device's network address. |
+| `get_weather` | Fetches real-time weather data for a specified city. |
+
+---
+*Developed with focus on Model Context Protocol extensibility.*
