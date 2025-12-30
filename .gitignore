@@ -1,0 +1,8 @@
+# venv
+.venv
+
+# hidden files except .gitignore
+.*
+
+# chat history
+chat_history.txt
