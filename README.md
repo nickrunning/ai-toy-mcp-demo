@@ -23,10 +23,13 @@ This project demonstrates a Model Context Protocol (MCP) server and client using
 
 ## Running the Demo
 
-1.  **Set your Google API Key**:
-    ```bash
-    export GOOGLE_API_KEY="your_actual_api_key_here"
-    ```
+1.  **Set your API Key and Config**:
+    *   **Qwen / OpenAI Compatible**:
+        ```bash
+        export OPENAI_API_KEY="your_api_key"
+        export OPENAI_BASE_URL="https://dashscope.aliyuncs.com/compatible-mode/v1" # example for Qwen
+        export OPENAI_MODEL_NAME="qwen-plus"
+        ```
 
 2.  **Run the Client**:
     ```bash
@@ -35,10 +38,10 @@ This project demonstrates a Model Context Protocol (MCP) server and client using
 
 3.  **Interact**:
     *   Type messages like "Do a backflip", "Check battery", "Play some jazz".
-    *   The system will use Gemini to decide which tool to call on the server.
+    *   The system will use the LLM to decide which tool to call on the server.
     *   Conversation history is saved to `chat_history.txt`.
 
 ## Troubleshooting
 
-*   If you see connection errors, ensure `server.py` is in the same directory and executable by the python interpreter.
-*   If you see API errors, check your `GOOGLE_API_KEY`.
+*   If you see connection errors, ensure `server.py` is in the same directory.
+*   Check your `OPENAI_API_KEY` and `OPENAI_BASE_URL` if connection to the LLM fails.
